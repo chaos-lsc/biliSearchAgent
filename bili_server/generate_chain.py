@@ -42,7 +42,8 @@ def create_generate_chain(llm):
     </question>
     """
 
-    generate_prompt = PromptTemplate(template=generate_template, input_variables=["context", "input"])
+    generate_prompt = PromptTemplate(
+        template=generate_template, input_variables=["context", "input"])
 
     # 没有StrOutputParser() 输出可能如下所示：
     # {
@@ -69,8 +70,8 @@ if __name__ == '__main__':
     llm = ChatOpenAI(
         base_url=os.getenv('OPENAI_API_BASE'),
         api_key=os.getenv("OPENAI_API_KEY"),
-        model=os.getenv("openai_model"),
-                     )
+        model='gpt-4o',
+    )
 
     # 创建一个生成链
     generate_chain = create_generate_chain(llm)

@@ -16,7 +16,7 @@ from langgraph.graph import END, StateGraph
 import os
 
 
-def create_parser_components(base_url:str,api_key: str, model: str):
+def create_parser_components(base_url: str, api_key: str, model: str):
     """
     创建并初始化解析器组件和评分器实例。
 
@@ -34,7 +34,7 @@ def create_parser_components(base_url:str,api_key: str, model: str):
     llm = ChatOpenAI(
         base_url=os.getenv('OPENAI_API_BASE'),
         api_key=os.getenv("OPENAI_API_KEY"),
-        model=os.getenv("openai_model"),
+        model='gpt-4o',
         temperature=0
     )
 
@@ -68,7 +68,7 @@ def create_parser_components(base_url:str,api_key: str, model: str):
     }
 
 
-def create_workflow(base_url:str, api_key: str, model: str):
+def create_workflow(base_url: str, api_key: str, model: str):
     """
     创建并初始化工作流以及其组成的节点和边。
 
@@ -85,16 +85,19 @@ def create_workflow(base_url:str, api_key: str, model: str):
     workflow = StateGraph(GraphState)
 
     # 创建图节点的实例
-    graph_nodes = GraphNodes(llm, retriever, retrieval_grader, hallucination_grader, code_evaluator, question_rewriter)
+    graph_nodes = GraphNodes(llm, retriever, retrieval_grader,
+                             hallucination_grader, code_evaluator, question_rewriter)
 
     # 创建边节点的实例
     edge_graph = EdgeGraph(hallucination_grader, code_evaluator)
 
     # 定义节点
     workflow.add_node("retrieve", graph_nodes.retrieve)  # retrieve documents
-    workflow.add_node("grade_documents", graph_nodes.grade_documents)  # grade documents
+    # grade documents
+    workflow.add_node("grade_documents", graph_nodes.grade_documents)
     workflow.add_node("generate", graph_nodes.generate)  # generate answers
-    workflow.add_node("transform_query", graph_nodes.transform_query)  # transform query
+    # transform query
+    workflow.add_node("transform_query", graph_nodes.transform_query)
 
     # 创建图
     workflow.set_entry_point("retrieve")

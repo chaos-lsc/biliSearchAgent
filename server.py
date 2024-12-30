@@ -21,12 +21,11 @@ load_dotenv(find_dotenv())
 # api_key = os.getenv('OPENAI_API_KEY')
 # model = os.getenv('openai_model')
 api_key = os.getenv('GLM_API_KEY')
-model = os.getenv('glm_model')
 
 # print(f"{api_key},{model}")
 
 # 初始化图节点的工作流
-chain = create_workflow(os.getenv('OPENAI_API_BASE'), api_key, model)
+chain = create_workflow(os.getenv('OPENAI_API_BASE'), api_key, 'gpt-4o')
 
 
 class Input(BaseModel):

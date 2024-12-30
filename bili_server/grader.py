@@ -136,7 +136,7 @@ if __name__ == '__main__':
     llm = ChatOpenAI(
         base_url=os.getenv('OPENAI_API_BASE'),
         api_key=os.getenv("OPENAI_API_KEY"),
-        model=os.getenv("openai_model"),
+        model='gpt-4o',
     )
 
     # 创建一个评分器类的实例
