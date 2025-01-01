@@ -9,11 +9,12 @@ def get(key, page_num):
     def process_page(page):
         video_data = page[0]
         BV = page[1]
+        AV=page[2]
         try:
             cc = get_cc.get(BV)
         except:
             cc = "没有字幕"
-        comment = get_comment.get(BV)
+        comment = get_comment.get(AV)
         return [video_data, cc, comment]
 
     datas = []

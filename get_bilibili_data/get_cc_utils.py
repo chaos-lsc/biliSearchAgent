@@ -2,7 +2,7 @@ import gzip, requests, json, time, urllib
 bianma = 'utf-8'
 
 he = {
-    'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:133.0) Gecko/20100101 Firefox/133.0',
+    'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0',
     }
 
 cookie = {"SESSDATA": "",}

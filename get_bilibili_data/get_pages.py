@@ -6,6 +6,8 @@ from bilibili_api import comment, Credential
 from bilibili_api.comment import CommentResourceType, OrderType
 from typing import List
 from aiohttp.client_exceptions import ClientError, ClientOSError
+my_sessdata="a208c850%2C1751273365%2Cb0771%2A12CjBowBZHhLkjf46o6a465wlyy28hL-qPNn73crACA57n_Q0PwrEjgH-WGMA-f7w60VQSVlR4cWdlMU5pY21HUUlnYVU2ZUZiVW43eFpWSVFaQi10TFd0aWhkd0w2R29RQ2p0OXRlY3F2TGZ0Z1o0RGFGckJsOVNtNVFEczRTWGhEXzFucTg3THBBIIEC"
+my_bili_jct="ee73c0bef8b7c4336d449c9331da9282"
 
 # https://github.com/Nemo2011/bilibili-api
 
@@ -52,8 +54,8 @@ async def fetch_comments(oid, page_start, page_end):
     order = OrderType.TIME  # 按发布时间倒序
 
     credential = Credential(
-        sessdata=" ",
-        bili_jct="",
+        sessdata=my_sessdata,
+        bili_jct=my_bili_jct,
         buvid3="",
         dedeuserid="", )
 
@@ -160,7 +162,8 @@ async def bilibili_detail_pipiline(keywords: List, page: int):
                 try:
                     AV = matches[0].replace("http://www.bilibili.com/video/av", "")
                     BV = abv_switch.av2bv(int(AV))
-                    get_result.append([page, BV])
+                    AV=int(AV)
+                    get_result.append([page, BV,AV])
                 except:
                     continue
         return get_result
@@ -176,6 +179,6 @@ def get(key_word,page):
                                          page=page))
     return get_result
 
-
+from pprint import pprint
 if __name__ == '__main__':
-    print(get("神经网络",1))
+    pprint(get("神经网络",1))
