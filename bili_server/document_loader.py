@@ -5,7 +5,7 @@
 
 import os
 # from langchain_core.documents import Document
-import get_bilibi
+from get_bilibili_data import get_data
 from typing import List, Optional
 # from langchain_openai import OpenAIEmbeddings
 # from langchain_community.vectorstores import FAISS
@@ -18,6 +18,8 @@ import asyncio
 
 import nest_asyncio
 nest_asyncio.apply()
+
+from dotenv import load_dotenv, find_dotenv
 
 WORKING_DIR = "./dickens"
 
@@ -32,12 +34,12 @@ async def llm_model_func(
     prompt, system_prompt=None, history_messages=[], keyword_extraction=False, **kwargs
 ) -> str:
     return await openai_complete_if_cache(
-        "glm4-flash",
+        "glm-4-flash",
         prompt,
         system_prompt=system_prompt,
         history_messages=history_messages,
         api_key=os.getenv("GLM_API_KEY"),
-        base_url="https://api.upstage.ai/v1/solar",
+        base_url=os.getenv("GLM_API_BASE"),
         **kwargs
     )
 
@@ -81,7 +83,7 @@ class DocumentLoader:
 
         """
 
-        raw_docs = await get_bilibi.bilibili_detail_pipiline(keywords=keywords, page=page)
+        raw_docs = await get_data(keywords=keywords, page=page)
 
         docs = [doc["real_data"] for doc in raw_docs]
 
@@ -95,33 +97,8 @@ class DocumentLoader:
             docs (List[str]): 包含要存储的内容的列表
 
         """
-        print(type(docs))
         rag.insert(docs)
 
-        # Perform naive search
-        print(rag.query("What are the top themes in this story?",
-                        param=QueryParam(mode="naive")))
-
-        # Perform local search
-        print(rag.query("What are the top themes in this story?",
-                        param=QueryParam(mode="local")))
-
-        # Perform global search
-        print(rag.query("What are the top themes in this story?",
-                        param=QueryParam(mode="global")))
-
-        # Perform hybrid search
-        print(rag.query("What are the top themes in this story?",
-                        param=QueryParam(mode="hybrid")))
-
-        # Perform mix search (Knowledge Graph + Vector Retrieval)
-        # Mix mode combines knowledge graph and vector search:
-        # - Uses both structured (KG) and unstructured (vector) information
-        # - Provides comprehensive answers by analyzing relationships and context
-        # - Supports image content through HTML img tags
-        # - Allows control over retrieval depth via top_k parameter
-        print(rag.query("What are the top themes in this story?", param=QueryParam(
-            mode="mix")))
 
     async def get_retriever(self, keywords: List[str], page: int):
         """
@@ -150,12 +127,10 @@ class DocumentLoader:
 
 if __name__ == '__main__':
     async def main():
-        loop = asyncio.get_running_loop()
-        if loop.is_running():
-            print("Event loop is already running")
-        else:
-            print("Event loop is not running")
+        # 从 .env 文件加载环境变量
+        load_dotenv(find_dotenv())
+
         loader = DocumentLoader()
-        await loader.get_retriever(keywords=["ChatGLM3-6b"], page=3)
+        await loader.get_retriever(keywords=["如何学习使用ChatGLM3-6b"], page=3)
 
     asyncio.run(main())

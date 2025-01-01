@@ -37,12 +37,12 @@ async def llm_model_func(
     prompt, system_prompt=None, history_messages=[], keyword_extraction=False, **kwargs
 ) -> str:
     return await openai_complete_if_cache(
-        "glm4-flash",
+        "glm-4-flash",
         prompt,
         system_prompt=system_prompt,
         history_messages=history_messages,
         api_key=os.getenv("GLM_API_KEY"),
-        base_url="https://api.upstage.ai/v1/solar",
+        base_url=os.getenv("GLM_API_BASE"),
         **kwargs
     )
 
@@ -72,17 +72,24 @@ with open("book.txt", "r", encoding="utf-8") as f:
 print(rag.query("What are the top themes in this story?",
                 param=QueryParam(mode="naive")))
 
+print("-----------------------------------------------")
+
 # Perform local search
 print(rag.query("What are the top themes in this story?",
                 param=QueryParam(mode="local")))
+
+print("-----------------------------------------------")
 
 # Perform global search
 print(rag.query("What are the top themes in this story?",
                 param=QueryParam(mode="global")))
 
+print("-----------------------------------------------")
 # Perform hybrid search
 print(rag.query("What are the top themes in this story?",
                 param=QueryParam(mode="hybrid")))
+
+print("-----------------------------------------------")
 
 # Perform mix search (Knowledge Graph + Vector Retrieval)
 # Mix mode combines knowledge graph and vector search:

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Author: MuyuCheney
-# Date: 2024-10-15
+# Author: Chaos
+# Date： 2024-12-31
+
 
 from langchain_openai import ChatOpenAI
 from bili_server.document_loader import DocumentLoader
@@ -11,17 +12,16 @@ from bili_server.graph import GraphState
 from bili_server.grader import GraderUtils
 from bili_server.nodes import GraphNodes
 
+from bili_server.qa_tools.prompt_template import get_question_parser_prompt
+
 from langgraph.graph import END, StateGraph
 
 import os
 
 
-def create_parser_components(base_url: str, api_key: str, model: str):
+def initialize_parser_components():
     """
-    创建并初始化解析器组件和评分器实例。
-
-    Args:
-    api_key (str): 用于访问OpenAI服务的API密钥。
+    初始化解析器组件和评分器实例。
 
     Returns:
     dict: 包含所有创建的组件实例的字典。
@@ -30,11 +30,11 @@ def create_parser_components(base_url: str, api_key: str, model: str):
     # 创建 retriever 实例，用于文档检索
     retriever = DocumentLoader()
 
-    # 创建 LLM model 实例，配置为使用 GPT-4o 模型和指定的温度参数
+    # 创建 LLM model 实例，配置为使用 glm-4-flash 模型和指定的温度参数
     llm = ChatOpenAI(
-        base_url=os.getenv('OPENAI_API_BASE'),
-        api_key=os.getenv("OPENAI_API_KEY"),
-        model='gpt-4o',
+        base_url=os.getenv('GLM_API_BASE'),
+        api_key=os.getenv("GLM_API_KEY"),
+        model='glm-4-flash',
         temperature=0
     )
 
@@ -68,9 +68,9 @@ def create_parser_components(base_url: str, api_key: str, model: str):
     }
 
 
-def create_workflow(base_url: str, api_key: str, model: str):
+def create_workflow():
     """
-    创建并初始化工作流以及其组成的节点和边。
+    本函数创建工作流
 
     Returns:
     StateGraph: 完全初始化和编译好的工作流对象。
@@ -79,8 +79,10 @@ def create_workflow(base_url: str, api_key: str, model: str):
     # 调用函数并直接解构字典以获取所有实例
     (llm, retriever, generate_chain,
      retrieval_grader, hallucination_grader,
-     code_evaluator, question_rewriter) = create_parser_components(base_url, api_key, model).values()
+     code_evaluator, question_rewriter) = initialize_parser_components().values()
 
+
+    question_type = get_question_parser_prompt(question)
     # 初始化图结构
     workflow = StateGraph(GraphState)
 

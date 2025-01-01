@@ -1,16 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Author: MuyuCheney
-# Date: 2024-10-15
+# Author: Chaos
+# Date: 2024-12-31
 
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
-import os
-
-from dotenv import load_dotenv, find_dotenv
-
-load_dotenv(find_dotenv())
-
 
 class GraderUtils:
     def __init__(self, model):
@@ -18,26 +12,26 @@ class GraderUtils:
 
     def create_retrieval_grader(self):
         """
-        Creates a retrieval grader that assesses the relevance of a retrieved document to a user question.
+        创建一个评估检索文档与用户问题相关性的评分器。
 
         Returns:
-            A callable function that takes a document and a question as input and returns a JSON object with a binary score indicating whether the document is relevant to the question.
+            一个可调用函数，接受一个文档和一个问题作为输入，并返回一个JSON对象，指示文档是否与问题相关。
         """
 
-        # 使用的特殊标记是为了指定不同部分的开始和结束，以及明确不同类型的文本块。
-        # 这些标记可以帮助大模型更好地理解和区分输入数据的不同部分，从而更精确地执行特定的任务。
+        # 使用特殊标记来指定不同部分的开始和结束，以及明确不同类型的文本块。
+        # 这些标记有助于大模型更好地理解和区分输入数据的不同部分，从而更精确地执行特定任务。
         # 您是一名评分员，负责评估检索到的文档与用户问题的相关性。如果文档包含与用户问题相关的关键词，请将其评为相关。这不需要非常严格的测试。目标是过滤掉错误的检索结果。
         grade_prompt = PromptTemplate(
             template="""
             <|begin_of_text|><|start_header_id|>system<|end_header_id|>
-            You are a grader assessing relevance of a retrieved document to a user question. If the document contains keywords related to the user question, grade it as relevant. It does not need to be a stringent test. The goal is to filter out erroneous retrievals.
-            Give a binary score 'yes' or 'no' score to indicate whether the document is relevant to the question.
-            Provide the binary score as a JSON with a single key 'score' and no preamble or explanation.
+            您是一名评分员，负责评估检索到的文档与用户问题的相关性。如果文档包含与用户问题相关的关键词，请将其评为相关。这不需要非常严格的测试。目标是过滤掉错误的检索结果。
+            给出一个二元评分 'yes' 或 'no'，表示文档是否与问题相关。
+            提供一个只有一个键 'score' 的JSON，不需要前言或解释。
             <|eot_id|>
             <|start_header_id|>user<|end_header_id|>
 
-            Here is the retrieved document: \n\n {document} \n\n
-            Here is the user question: {input} \n
+            这是检索到的文档: \n\n {document} \n\n
+            这是用户问题: {input} \n
             <|eot_id|>
             <|start_header_id|>assistant<|end_header_id|>
             """,
@@ -49,24 +43,23 @@ class GraderUtils:
 
         return retriever_grader
 
-    # 您是一名评分员，负责评估答案是否基于/得到一组事实的支持。请给出“是”或“否”的二元评分，以表明答案是否基于/得到事实的支持。提供一个只有一个键“score”的JSON，不需要前言或解释。
     def create_hallucination_grader(self):
         """
-        Creates a hallucination grader that assesses whether an answer is grounded in/supported by a set of facts.
+        创建一个评估答案是否基于一组事实的支持的评分器。
 
         Returns:
-            A callable function that takes a generation (answer) and a list of documents (facts) as input and returns a JSON object with a binary score indicating whether the answer is grounded in/supported by the facts.
+            一个可调用函数，接受一个生成（答案）和一组文档（事实）作为输入，并返回一个JSON对象，指示答案是否基于一组事实的支持。
         """
         hallucination_prompt = PromptTemplate(
             template="""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
-            You are a grader assessing whether an answer is grounded in / supported by a set of facts. Give a binary score 'yes' or 'no' score to indicate whether the answer is grounded in / supported by a set of facts. Provide the binary score as a JSON with a single key 'score' and no preamble or explanation.
+            您是一名评分员，负责评估答案是否基于一组事实的支持。给出一个二元评分 'yes' 或 'no'，表示答案是否基于一组事实的支持。提供一个只有一个键 'score' 的JSON，不需要前言或解释。
             <|eot_id|>
             <|start_header_id|>user<|end_header_id|>
-            Here are the facts:
+            这些是事实：
             \n ------- \n
             {documents}
             \n ------- \n
-            Here is the answer: {generation}
+            这是答案: {generation}
             <|eot_id|>
             <|start_header_id|>assistant<|end_header_id|>""",
             input_variables=["generation", "documents"],
@@ -78,26 +71,26 @@ class GraderUtils:
 
     def create_code_evaluator(self):
         """
-        Creates a code evaluator that assesses whether the generated code is correct and relevant to the given question.
+        创建一个评估生成代码是否正确和相关的评分器。
 
         Returns:
-            A callable function that takes a generation (code), a question, and a list of documents as input and returns a JSON object with a binary score and feedback.
+            一个可调用函数，接受一个生成（代码）、一个问题和一组文档作为输入，并返回一个JSON对象，指示代码是否正确和相关。
         """
         eval_template = PromptTemplate(
-            template="""<|begin_of_text|><|start_header_id|>system<|end_header_id|> You are a code evaluator assessing whether the generated code is correct and relevant to the given question.
-            Provide a JSON response with the following keys:
+            template="""<|begin_of_text|><|start_header_id|>system<|end_header_id|> 您是一名评分员，负责评估生成代码是否正确和相关的。
+            提供一个JSON响应，包含以下键：
 
-            'score': A binary score 'yes' or 'no' indicating whether the code is correct and relevant.
-            'feedback': A brief explanation of your evaluation, including any issues or improvements needed.
+            'score': 一个二元评分 'yes' 或 'no'，表示代码是否正确和相关。
+            'feedback': 一个简短的评价解释，包括任何问题或改进建议。
 
             <|eot_id|><|start_header_id|>user<|end_header_id|>
-            Here is the generated code:
+            这是生成的代码:
             \n ------- \n
             {generation}
             \n ------- \n
-            Here is the question: {input}
+            这是问题: {input}
             \n ------- \n
-            Here are the relevant documents: {documents}
+            这是一组相关文档: {documents}
             <|eot_id|><|start_header_id|>assistant<|end_header_id|>""",
             input_variables=["generation", "input", "documents"],
         )
@@ -106,21 +99,20 @@ class GraderUtils:
 
         return code_evaluator
 
-    # 您是一个问题重写器，将输入的问题转换成更好的版本，优化以适应向量存储检索。请查看输入并尝试理解其潜在的语义意图/含义。
     def create_question_rewriter(self):
         """
-        Creates a question rewriter chain that rewrites a given question to improve its clarity and relevance.
+        创建一个问题重写器链，将输入的问题转换成更好的版本，优化以适应图存储检索。
 
         Returns:
-            A callable function that takes a question as input and returns the rewritten question as a string.
+            一个可调用函数，接受一个问题作为输入，并返回重写后的问题作为字符串。
         """
         re_write_prompt = PromptTemplate(
             template="""
-            You a question re-writer that converts an input question to a better version that is optimized for vectorstore retrieval. Look at the input and try to reason about the underlying sematic intent / meaning.
+            您是一个问题重写器，将输入的问题转换成更好的版本，优化以适应图存储检索。查看输入并尝试理解其潜在的语义意图/含义。
 
-            Here is the initial question: {input}
+            这是初始问题: {input}
 
-            Formulate an improved question.""",
+            形成一个改进的问题.""",
 
             input_variables=["input"],
         )
@@ -132,6 +124,10 @@ class GraderUtils:
 
 if __name__ == '__main__':
     from langchain_openai import ChatOpenAI
+    from dotenv import load_dotenv, find_dotenv
+    import os
+
+    load_dotenv(find_dotenv())
 
     llm = ChatOpenAI(
         base_url=os.getenv('OPENAI_API_BASE'),
