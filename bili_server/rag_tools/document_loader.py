@@ -6,11 +6,12 @@
 import os
 # from langchain_core.documents import Document
 from get_bilibili_data import get_data
-from typing import List, Optional
+from typing import List, Any
 # from langchain_openai import OpenAIEmbeddings
 # from langchain_community.vectorstores import FAISS
 # from langchain.text_splitter import RecursiveCharacterTextSplitter
 from lightrag import LightRAG, QueryParam
+from typing import Literal
 from lightrag.llm import openai_complete_if_cache, openai_embedding
 from lightrag.utils import EmbeddingFunc
 import numpy as np
@@ -54,21 +55,26 @@ async def embedding_func(texts: list[str]) -> np.ndarray:
         base_url=os.getenv("SF_API_BASE")
     )
 
-rag = LightRAG(
-    working_dir=WORKING_DIR,
-    llm_model_func=llm_model_func,
-    embedding_func=EmbeddingFunc(
-        embedding_dim=1024,  # BAAI/bge-m3 支持 1024 dim
-        max_token_size=8192,
-        func=embedding_func
-    )
-)
-
 
 class DocumentLoader:
-    """
-    This class uses the get_docs function to take a Keyword as input, and outputs a list of documents (including metadata).
-    """
+    _instance = None
+
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
+    def __init__(self):
+        self.rag = LightRAG(
+            working_dir=WORKING_DIR,
+            llm_model_func=llm_model_func,
+            embedding_func=EmbeddingFunc(
+                embedding_dim=1024,  # BAAI/bge-m3 支持 1024 dim
+                max_token_size=8192,
+                func=embedding_func
+            )
+        )
 
     async def get_docs(self, keywords: List[str], page: int) -> List[str]:
         """
@@ -97,30 +103,21 @@ class DocumentLoader:
             docs (List[str]): 包含要存储的内容的列表
 
         """
-        rag.insert(docs)
+        self.rag.insert(docs)
 
-
-    async def get_retriever(self, keywords: List[str], page: int):
+    async def get_retriever(self, keywords: List[str], mode: Literal['local', 'global', 'hybrid', 'naive', 'mix'] = "mix") -> Any:
         """
-            Retrieves documents and returns a retriever based on the documents.
+        Retrieves documents and returns a retriever based on the documents.
 
-            Args:
-                keywords (List[str]): Keywords to search documents.
-                page (int): Page number for pagination of results.
+        Args:
+            keywords (List[str]): Keywords to search documents.
+            mode (Literal['local', 'global', 'hybrid', 'naive', 'mix']): The mode for the retriever. Defaults to "mix".
 
-            Returns:
-
-            """
-        print(f"开始实时查询BiliBiliAPI获取数据")
-        docs = await self.get_docs(keywords, page)
-        # print(f"接收到的BiliBili数据为：{docs}")
-        print("-------------------------")
-        print(f"开始进行图数据库存储")
-        await self.create_graph_store(docs)
-        print(f"成功完成图数据库的存储")
-        print("-------------------------")
-        print(f"开始进行文本检索")
-        retriever_result = rag.query(keywords, param=QueryParam(mode="mix"))
+        Returns:
+            Any: The retrieved result.
+        """
+        print("开始进行文本检索")
+        retriever_result = self.rag.query(query=keywords, param=QueryParam(mode=mode))
         print(f"检索到的数据为：{retriever_result}")
         return retriever_result
 
@@ -131,6 +128,6 @@ if __name__ == '__main__':
         load_dotenv(find_dotenv())
 
         loader = DocumentLoader()
-        await loader.get_retriever(keywords=["如何学习使用ChatGLM3-6b"], page=3)
+        await loader.get_retriever(keywords=["如何学习使用ChatGLM3-6b"])
 
     asyncio.run(main())

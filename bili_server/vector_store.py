@@ -8,7 +8,7 @@ from typing import List, Optional
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from bili_server.document_loader import DocumentLoader
+from bili_server.rag_tools.document_loader import DocumentLoader
 
 
 def get_local_store(store_path: str) -> FAISS:

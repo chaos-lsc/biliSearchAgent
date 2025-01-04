@@ -5,17 +5,34 @@
 
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
+from langchain_core.runnables import RunnableSerializable
+from typing import Any
+from langchain_openai import ChatOpenAI
+import os
 
 class GraderUtils:
-    def __init__(self, model):
-        self.model = model
+    _instance = None
 
-    def create_retrieval_grader(self):
+    @classmethod
+    def get_instance(cls):
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
+    def __init__(self):
+        self.model = ChatOpenAI(
+            model='glm-4-flash',
+            openai_api_base=os.getenv("GLM_API_BASE"),
+            api_key=os.getenv("GLM_API_KEY"),
+            max_tokens=300,
+            temperature=0.7)
+
+    def create_retrieval_grader(self) -> RunnableSerializable[dict, Any]:
         """
         创建一个评估检索文档与用户问题相关性的评分器。
 
         Returns:
-            一个可调用函数，接受一个文档和一个问题作为输入，并返回一个JSON对象，指示文档是否与问题相关。
+            一个可调用函数，接受字典作为输入其键值必须包含 `document` 和 `input`，分别表示检索到的文档和用户问题，并返回一个包含评分的字典，键为 `score`，值为 `yes` 或 `no`，指示文档是否与问题相关。
         """
 
         # 使用特殊标记来指定不同部分的开始和结束，以及明确不同类型的文本块。
@@ -130,9 +147,9 @@ if __name__ == '__main__':
     load_dotenv(find_dotenv())
 
     llm = ChatOpenAI(
-        base_url=os.getenv('OPENAI_API_BASE'),
-        api_key=os.getenv("OPENAI_API_KEY"),
-        model='gpt-4o',
+        base_url=os.getenv('GLM_API_BASE'),
+        api_key=os.getenv("GLM_API_KEY"),
+        model='glm-4-flash',
     )
 
     # 创建一个评分器类的实例

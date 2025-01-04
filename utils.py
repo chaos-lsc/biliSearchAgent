@@ -5,11 +5,11 @@
 
 
 from langchain_openai import ChatOpenAI
-from bili_server.document_loader import DocumentLoader
+from bili_server.rag_tools.document_loader import DocumentLoader
 from bili_server.edges import EdgeGraph
 from bili_server.generate_chain import create_generate_chain
 from bili_server.graph import GraphState
-from bili_server.grader import GraderUtils
+from bili_server.utils.grader import GraderUtils
 from bili_server.nodes import GraphNodes
 
 from bili_server.qa_tools.prompt_template import get_question_parser_prompt
