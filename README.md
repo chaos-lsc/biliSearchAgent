@@ -1,61 +1,33 @@
 
-## Project Introduction
-BiliAgent is a complex AI Agent application built on large models. This tool receives user input on the web front-end, and the back-end calls the Bilibili API in real time. Based on the user's input, it queries real-time data, autonomously conducts data analysis, and generates precise responses or data analysis reports, which are then returned to the user through the front-end. For example, users can request:
-- I am learning about deploying the Chat GLM model. Please find the most positively reviewed relevant videos and return the links along with your recommendations.
-- I am preparing to release a video about Swarm technology. Please generate a trending title based on current popular video titles and descriptions to help me gain more attention.
+## 项目介绍
+Bilibili视频平台上涵盖了从科技、教育到文化、艺术等广泛领域的高质量内容，吸引了大量追求知识和自我提升的年轻用户。随着数字技术和人工智能的迅猛发展，知识检索的形式正在经历深刻的创新与变革。尽管Bilibili作为领先的在线视频平台，在多媒体内容分发和用户互动方面取得了显著成就，但在智能化检索方面仍有提升空间。为了应对这一挑战并进一步增强用户体验，我们推出了“Bilibili知识检索增强工具”。
+本项目的核心目标是构建一个智能的知识检索系统，旨在通过以下方式加强Bilibili的知识发现能力：
+1. 知识图谱的构建：利用先进的知识图谱技术，我们将Bilibili丰富的知识区视频信息结构化为语义网络。这种表示模型不仅能够将分散的知识点连接起来，还能揭示不同概念之间的潜在关系，从而提供更加深入和全面的理解。
+2. 专业AI智能体的训练：基于大规模语言模型（LLM），我们训练了一个专门针对Bilibili内容的专业AI智能体。这个智能体能够以生成式对话应用的形式，提供自然流畅的人机交互体验，帮助用户更高效地获取所需信息。
+3. 问答系统的开发：结合知识图谱与AI智能体，我们开发了一套强大的问答系统。该系统不仅能根据用户的问题快速定位到相关的视频内容，还能通过深度分析问题背后的意图，给出精准且富有洞察力的回答。
+4. 可视化探索：为了让用户更好地理解知识图谱的结构和内容，我们提供了直观的可视化工具。这些工具允许用户以图形化的方式浏览和探索知识间的联系，极大地增强了学习和研究的乐趣。
+5. RAG检索增强：为了确保系统的灵活性和可扩展性，我们还在系统中增加了基于Retrieval-Augmented Generation (RAG) 的检索增强机制。
 
+![workflow_intro](/pic/workflow.PNG)
 
-## Core Technology
+## 技术架构
+![architecture_intro](/pic/architecture.png)
 
-**In terms of project architecture**, BiliAgent is an end-to-end service using a front-end/back-end separation architecture. The backend combines LangServe and FastAPI technologies, utilizing the LangServe's `add_routes` interface to encapsulate chains and RAG services from LangChain into REST APIs. It supports high-concurrency requests, streaming, and asynchronous operations. The frontend is built with Streamlit, focusing on simple user interaction rather than complex visual presentation. **In terms of technology application**, the core AI Agent framework is provided by LangGraph, and the basic model invocation is done through LangChain, supporting the most popular GPT series (international) and GLM4 models (domestic).
-
-- **Technology Stack**
-
-  - **AI Agent Framework**: LangGraph
-
-  - **Model Invocation**: Supports mainstream online & open-source models through LangChain
-
-  - **Frontend Technology**: Streamlit
-
-  - **Backend Technology**: LangServe + FastAPI
-
-  - **Embedded Models**: OpenAI Embedding, GLM Embedding
-
-  - **State Tracking**: LangSmith
-
-- **Business Logic Flowchart**
-<div align="center">
-<img src="https://muyu001.oss-cn-beijing.aliyuncs.com/img/20241016001.png" width="700"/>
-</div>
-
-- **Complete Project Architecture**
-<div align="center">
-<img src="https://muyu001.oss-cn-beijing.aliyuncs.com/img/20241016002.png" width="700"/>
-</div>
-
-- **Core Function Development Flowchart**
-<div align="center">
-  <img src="https://muyu001.oss-cn-beijing.aliyuncs.com/img/20241018007.png" width="700"/>
-</div>
-
-## Installation Guide
+## 使用方法
 ```bash
-# 克隆仓库
-git clone https://github.com/fufankeji/BiliAgent.git
-
 # 安装依赖
-cd BiliAgent
-pip install -r requirements.txt
+pip install -r requirements.txt 
+# 根目录下创建.env文件
+# 在.env文件中填写下面内容
+#GLM_API_BASE='https://open.bigmodel.cn/api/paas/v4'
+#GLM_API_KEY='<your_api_key>'
+#SF_API_BASE='https://api.siliconflow.cn/v1'
+#SF_API_KEY='<your_api_key>'
 
-# 修改.env.bak文件 为 .env
-
-# 在.env文件中填写OpenAI API Key
-
-# 运行服务端
-python app/client
-
-# 运行客户端
-streamlit run app/client.py
+# 启动服务端
+python server.py
+# 启动客户端
+streamlit run client.py
 ```
 
 
