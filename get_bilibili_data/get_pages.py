@@ -6,6 +6,7 @@ from bilibili_api import comment, Credential
 from bilibili_api.comment import CommentResourceType, OrderType
 from typing import List
 from aiohttp.client_exceptions import ClientError, ClientOSError
+import asyncio
 my_sessdata="a208c850%2C1751273365%2Cb0771%2A12CjBowBZHhLkjf46o6a465wlyy28hL-qPNn73crACA57n_Q0PwrEjgH-WGMA-f7w60VQSVlR4cWdlMU5pY21HUUlnYVU2ZUZiVW43eFpWSVFaQi10TFd0aWhkd0w2R29RQ2p0OXRlY3F2TGZ0Z1o0RGFGckJsOVNtNVFEczRTWGhEXzFucTg3THBBIIEC"
 my_bili_jct="ee73c0bef8b7c4336d449c9331da9282"
 
@@ -147,10 +148,6 @@ async def bilibili_detail_pipiline(keywords: List, page: int):
                 "keyword": keyword,
                 "real_data": real_data
             })
-        #print(
-        #    f"all_results: {json.dumps(all_results, indent=4, ensure_ascii=False)}")
-        from pprint import pprint
-        #pprint(real_data)
         import re
         #print(len(real_data.split("类型")))
         pages=real_data.split("类型")
