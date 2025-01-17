@@ -166,7 +166,7 @@ async def bilibili_detail_pipiline(keywords: List, page: int):
         return get_result
 
 from pprint import pprint
-from get_bilibili_data import abv_switch
+import abv_switch
 def get(key_word,page):
     if(len(key_word)<=6):
         key_word+=key_word
