@@ -1,8 +1,8 @@
 from pprint import pprint
 
-import get_pages
-import get_cc
-import get_comment
+from get_bilibili_data import get_pages
+from get_bilibili_data import get_cc
+from get_bilibili_data import get_comment
 import concurrent.futures
 from tqdm import tqdm
 def get(key, page_num):
