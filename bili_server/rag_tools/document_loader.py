@@ -21,9 +21,11 @@ import nest_asyncio
 nest_asyncio.apply()
 
 from dotenv import load_dotenv, find_dotenv
+import networkx as nx
 
 WORKING_DIR = "./dickens"
 
+G = nx.read_graphml(WORKING_DIR + "/graph_chunk_entity_relation.graphml")
 
 if not os.path.exists(WORKING_DIR):
     os.mkdir(WORKING_DIR)
@@ -75,6 +77,30 @@ class DocumentLoader:
                 func=embedding_func
             )
         )
+
+    def has_keyword(self, keyword: str) -> bool:
+        """
+        检查RAG中是否存在特定关键词
+        """
+        # Get all nodes that have edges
+        nodes_with_edges = set()
+        for u, v in G.edges():
+            nodes_with_edges.add(u)
+            nodes_with_edges.add(v)
+
+        if nodes_with_edges:
+            # Print all nodes that have edges
+            for node in nodes_with_edges:
+                print(f"Node: {node}")
+                print(f"Node Properties: {G.nodes[node]}")
+                print("---")
+        
+        if keyword in nodes_with_edges:
+            print(f"关键词 '{keyword}' 存在于节点中。")
+            return True
+        else:
+            print(f"关键词 '{keyword}' 不存在于节点中。")
+            return False
 
     async def get_docs(self, keywords: List[str], page: int) -> List[str]:
         """

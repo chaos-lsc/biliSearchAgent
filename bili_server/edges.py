@@ -1,7 +1,23 @@
+
 class EdgeGraph:
     def __init__(self, hallucination_grader, code_evaluator):
         self.hallucination_grader = hallucination_grader
         self.code_evaluator = code_evaluator
+
+    def decide_to_retrieve_keywords(self, state):
+        """
+        查看rag中是否能检索到相关关键词的实体
+        """
+        keywords = state["input_keywords"]
+
+        for keyword in keywords:
+            if self.document_loader.has_keyword(keyword):
+                state["keywords_in_rag"].append(keyword)
+        if state["keywords_in_rag"]:
+            return "retrieve_keywords"
+        else:
+            return "transform_query"
+
 
     def decide_to_generate(self, state):
         """

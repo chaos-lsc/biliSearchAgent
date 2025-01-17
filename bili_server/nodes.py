@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Author: MuyuCheney
-# Date: 2024-10-15
+# Author: Chaos
+# Date: 2025-01-12
 
 from bili_server.generate_chain import create_generate_chain
-
+from bili_server.qa_tools.function_tools import classify_question_type,common_question_tool
+from bili_server.qa_tools.prompt_template import GENERATE_KEYWORDS_TEMPLATE
+from bili_server.qa_tools.chat_with_ai import chat_with_ai
 
 class GraphNodes:
     def __init__(self, llm, retriever, retrieval_grader, hallucination_grader, code_evaluator, question_rewriter):
@@ -34,11 +36,70 @@ class GraphNodes:
         documents = await self.retriever.get_retriever(keywords=[question], page=1)
         print(f"这是检索到的Docs:{documents}")
         return {"documents": documents, "input": question}
-
-    def generate(self, state):
+    
+    def parse_question(self,state) -> dict:
         """
-        使用输入问题和检索到的文档生成答案，并将生成添加到图形状态中。
-        Generate answer
+        解析输入的问题
+
+        Args:
+            state (dict): The current graph state
+
+        Returns:
+            state (dict): New key added to state, input_keywords, that contains input keywords
+        """
+        question = state["input"]
+        # 解析问题类型
+        question_type = classify_question_type(question)
+        state["question_type"] = question_type
+        # 生成关键字
+        response = chat_with_ai(f"{GENERATE_KEYWORDS_TEMPLATE}\n{question}")
+        state["input_keywords"] = response.split(',')
+
+        return {"input_keywords": state["input_keywords"], "input": question}
+    
+    def retrieve_keywords_in_RAG(self, state):
+        """
+        根据关键词检索RAG，将检索到的关键词添加到图状态中
+
+        Args:
+            state (dict): The current graph state
+
+        Returns:
+            state (dict): New key added to state
+        """
+        keywords = state["input_keywords"]
+        # TODO: 根据关键词检索RAG
+        for keyword in keywords:
+            if self.document_loader.has_keyword(keyword):
+                state["keywords_in_rag"].append(keyword)
+
+    async def retrieve_and_store_keywords_via_Bili(self, state):
+        """
+        根据关键词检索Bilibili
+
+        Args:
+            state (dict): The current graph state
+
+        Returns:
+            state (dict): New key added to state
+        """
+        keywords = state["input_keywords"]
+        missing_keywords = [keyword for keyword in keywords if not state["keywords_in_rag"]]
+        
+        for keyword in missing_keywords:
+            pass
+            #TODO: 执行检索
+            #documents =
+            #get_docs(missing_keywords, page=1)
+            #print(f"检索到的文档为: {documents}")
+            #TODO: 向rag中添加
+            #await self.rag.create_graph_store(documents)
+        
+        return state
+
+    def generate_answer(self, state):
+        """
+        使用输入问题和检索到的数据生成答案，并将生成添加到状态中
 
         Args:
             state (dict): The current graph state
@@ -51,15 +112,14 @@ class GraphNodes:
         question = state["input"]
         documents = state["documents"]
 
-        # 基于RAG生成
+        # TODO 基于RAG生成
         generation = self.generate_chain.invoke({"context": documents, "input": question})
         print(f"生成的响应为:{generation}")
         return {"documents": documents, "input": question, "generation": generation}
 
     def grade_documents(self, state):
         """
-        重新表述输入问题以提高其清晰度和相关性，并使用转换后的问题更新图状态。
-        Determines whether the retrieved documents are relevant to the question.
+        判断检索到的文档是否与问题相关
 
         Args:
             state (dict): The current graph state
@@ -88,6 +148,7 @@ class GraphNodes:
 
     def transform_query(self, state):
         """
+        重写提问
         Transform the query to produce a better question.
 
         Args:
@@ -99,6 +160,7 @@ class GraphNodes:
         print("---节点：重写用户输入的问题---")
 
         question = state["input"]
+        # TODO 这里需要检索的文档信息？
         documents = state["documents"]
 
         # 问题重写

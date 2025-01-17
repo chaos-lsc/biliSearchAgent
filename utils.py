@@ -30,7 +30,7 @@ def initialize_parser_components():
     # 创建 retriever 实例，用于文档检索
     retriever = DocumentLoader()
 
-    # 创建 LLM model 实例，配置为使用 glm-4-flash 模型和指定的温度参数
+    # 创建 LLM model 实例，配置为使用 glm-4-flash 模型
     llm = ChatOpenAI(
         base_url=os.getenv('GLM_API_BASE'),
         api_key=os.getenv("GLM_API_KEY"),
@@ -82,7 +82,6 @@ def create_workflow():
      code_evaluator, question_rewriter) = initialize_parser_components().values()
 
 
-    question_type = get_question_parser_prompt(question)
     # 初始化图结构
     workflow = StateGraph(GraphState)
 
@@ -94,19 +93,28 @@ def create_workflow():
     edge_graph = EdgeGraph(hallucination_grader, code_evaluator)
 
     # 定义节点
-    workflow.add_node("retrieve", graph_nodes.retrieve)  # retrieve documents
+
+    # init state
+    workflow.add_node("init_state", graph_nodes.parse_question)
+    # RAG 中检索关键词实体是否存在
+    workflow.add_node("retrieve_keywords_in_RAG", graph_nodes.retrieve_keywords_in_RAG)
+    # TODO 向RAG中添加缺少的语料
+    workflow.add_node("retrieve_and_store_keywords_via_bili",graph_nodes.retrieve_and_store_keywords_via_Bili)
+    
+    # 检索 RAG，输出回答
+    workflow.add_node("generate", graph_nodes.generate_answer)
+
     # grade documents
     workflow.add_node("grade_documents", graph_nodes.grade_documents)
-    workflow.add_node("generate", graph_nodes.generate)  # generate answers
     # transform query
     workflow.add_node("transform_query", graph_nodes.transform_query)
 
     # 创建图
-    workflow.set_entry_point("retrieve")
-    workflow.add_edge("retrieve", "grade_documents")
+    workflow.set_entry_point("init_state")
+    workflow.add_edge("init_state", "retrieve_keywords_in_RAG")
     workflow.add_conditional_edges(
-        "grade_documents",
-        edge_graph.decide_to_generate,
+        "retrieve_keywords_in_RAG   ",
+        edge_graph.decide_to_retrieve_keywords,
         {
             "transform_query": "transform_query",
             "generate": "generate",
