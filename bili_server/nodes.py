@@ -4,9 +4,10 @@
 # Date: 2025-01-12
 
 from bili_server.generate_chain import create_generate_chain
-from bili_server.qa_tools.function_tools import classify_question_type,common_question_tool
+# from bili_server.qa_tools.function_tools import common_question_tool
 from bili_server.qa_tools.prompt_template import GENERATE_KEYWORDS_TEMPLATE
 from bili_server.qa_tools.chat_with_ai import chat_with_ai
+from bili_server.rag_tools.document_loader import DocumentLoader
 
 class GraphNodes:
     def __init__(self, llm, retriever, retrieval_grader, hallucination_grader, code_evaluator, question_rewriter):
@@ -70,8 +71,10 @@ class GraphNodes:
         keywords = state["input_keywords"]
         # TODO: 根据关键词检索RAG
         for keyword in keywords:
-            if self.document_loader.has_keyword(keyword):
+            if DocumentLoader.getinstance().has_keyword(keyword):
                 state["keywords_in_rag"].append(keyword)
+            else:
+                state["keywords_not_in_rag"].append(keyword)
 
     async def retrieve_and_store_keywords_via_Bili(self, state):
         """

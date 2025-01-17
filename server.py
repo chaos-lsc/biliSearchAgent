@@ -9,9 +9,7 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from langserve import add_routes
 from pydantic import BaseModel
-# from utils import create_workflow
-from bili_server.qa_tools.question_type_classify import classify_question_type
-from bili_server.qa_tools.function_tools import map_question_to_function
+from utils import create_workflow
 from dotenv import load_dotenv, find_dotenv
 
 # 从 .env 文件加载环境变量
@@ -30,16 +28,26 @@ app = FastAPI(
 async def redirect_root_to_docs():
     return RedirectResponse("/docs")
 
-@app.get("/stream")
-async def qa_workflow(question: str):
-    print(question)
-    question_type = classify_question_type(question)
-    print(question_type)
-    function = map_question_to_function(question_type)
+@app.get("/")
+async def redirect_root_to_docs():
+    return RedirectResponse("/docs")
 
-    result = function(question)
-    print(result)
+# 初始化图节点的工作流
+chain = create_workflow()
 
+class Input(BaseModel):
+    input: str
+
+
+class Output(BaseModel):
+    output: dict
+
+# 添加路由
+add_routes(
+    app,
+    chain.with_types(input_type=Input, output_type=Output),
+    path="/biliagent_chat",
+)
 
 # 运行代码时，使用 Uvicorn 运行 app
 if __name__ == "__main__":

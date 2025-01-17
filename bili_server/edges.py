@@ -10,13 +10,10 @@ class EdgeGraph:
         """
         keywords = state["input_keywords"]
 
-        for keyword in keywords:
-            if self.document_loader.has_keyword(keyword):
-                state["keywords_in_rag"].append(keyword)
-        if state["keywords_in_rag"]:
-            return "retrieve_keywords"
+        if state["keywords_not_in_rag"]:
+            return "retrieve_and_store_keywords_via_bili"
         else:
-            return "transform_query"
+            return "generate_answer"
 
 
     def decide_to_generate(self, state):

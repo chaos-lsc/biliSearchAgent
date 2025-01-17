@@ -12,7 +12,7 @@ from bili_server.graph import GraphState
 from bili_server.utils.grader import GraderUtils
 from bili_server.nodes import GraphNodes
 
-from bili_server.qa_tools.prompt_template import get_question_parser_prompt
+from bili_server.qa_tools.prompt_template import GENERATE_KEYWORDS_TEMPLATE
 
 from langgraph.graph import END, StateGraph
 
@@ -42,7 +42,7 @@ def initialize_parser_components():
     generate_chain = create_generate_chain(llm)
 
     # 初始化评分器实例，用于创建和管理多种评分工具
-    grader = GraderUtils(llm)
+    grader = GraderUtils()
 
     # 创建评估检索文档与用户问题相关性的评分器
     retrieval_grader = grader.create_retrieval_grader()
@@ -98,11 +98,11 @@ def create_workflow():
     workflow.add_node("init_state", graph_nodes.parse_question)
     # RAG 中检索关键词实体是否存在
     workflow.add_node("retrieve_keywords_in_RAG", graph_nodes.retrieve_keywords_in_RAG)
-    # TODO 向RAG中添加缺少的语料
+    # 向RAG中添加缺少的语料，无需检索文本
     workflow.add_node("retrieve_and_store_keywords_via_bili",graph_nodes.retrieve_and_store_keywords_via_Bili)
     
     # 检索 RAG，输出回答
-    workflow.add_node("generate", graph_nodes.generate_answer)
+    workflow.add_node("generate_answer", graph_nodes.generate_answer)
 
     # grade documents
     workflow.add_node("grade_documents", graph_nodes.grade_documents)
@@ -113,23 +113,23 @@ def create_workflow():
     workflow.set_entry_point("init_state")
     workflow.add_edge("init_state", "retrieve_keywords_in_RAG")
     workflow.add_conditional_edges(
-        "retrieve_keywords_in_RAG   ",
+        "retrieve_keywords_in_RAG",
         edge_graph.decide_to_retrieve_keywords,
         {
-            "transform_query": "transform_query",
-            "generate": "generate",
+            "retrieve_and_store_keywords_via_bili": "retrieve_and_store_keywords_via_bili",
+            "generate_answer": "generate_answer",
         }
     )
-    workflow.add_edge("transform_query", "retrieve")
-    workflow.add_conditional_edges(
-        "generate",
-        edge_graph.grade_generation_v_documents_and_question,
-        {
-            "not supported": "generate",
-            "useful": END,
-            "not useful": "transform_query",
-        }
-    )
+    # workflow.add_edge("retrieve_and_store_keywords_via_bili", "retrieve")
+    # workflow.add_conditional_edges(
+    #     "generate_answer",
+    #     edge_graph.grade_generation_v_documents_and_question,
+    #     {
+    #         "not supported": "generate_answer",
+    #         "useful": END,
+    #         "not useful": "transform_query",
+    #     }
+    # )
 
     # 编译图
     chain = workflow.compile()
@@ -137,11 +137,10 @@ def create_workflow():
 
 
 if __name__ == '__main__':
-    import os
-    from dotenv import load_dotenv, find_dotenv
-
-    load_dotenv(find_dotenv())
-
-    create_workflow(os.getenv('OPENAI_API_KEY'),
-                    os.getenv('model'),
-                    )
+    # from langgraph.visualization import display_graph
+    try:
+        chain = create_workflow()
+        print(chain.get_graph().draw_mermaid_png())
+        # display_graph(chain)
+    except Exception:
+        pass

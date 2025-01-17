@@ -9,6 +9,7 @@ class GraphState(TypedDict):
         input(str): question
         input_keywords(List[str]): 输入的关键字
         keywords_in_rag(List[str]): 在RAG中找到的关键字
+        keywords_not_in_rag(List[str]): 在RAG中未找到的关键字
         generation(str): LLM generation
         documents(str): 检索到的文档
     """
@@ -17,5 +18,6 @@ class GraphState(TypedDict):
     question_type: QuestionType
     input_keywords: List[str]
     keywords_in_rag: List[str]
+    keywords_not_in_rag: List[str]
     generation: str
     documents: str
