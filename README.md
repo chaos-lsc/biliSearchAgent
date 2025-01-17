@@ -24,6 +24,10 @@ pip install -r requirements.txt
 #SF_API_BASE='https://api.siliconflow.cn/v1'
 #SF_API_KEY='<your_api_key>'
 
+# 申请API_KEY：
+# 申请GLM_API_KEY地址：https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys
+# 申请SF_API_KEY地址：https://cloud.siliconflow.cn/account/ak
+
 # 启动服务端
 python server.py
 # 启动客户端
