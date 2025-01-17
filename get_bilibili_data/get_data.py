@@ -1,8 +1,16 @@
 from pprint import pprint
+import sys
 
-from get_bilibili_data import get_pages
-from get_bilibili_data import get_cc
-from get_bilibili_data import get_comment
+import os
+current_file_path = os.path.abspath(__file__)
+
+# 获取当前文件所在的目录
+current_dir = os.path.dirname(current_file_path)
+
+sys.path.append(current_dir)
+import get_pages
+import get_cc
+import get_comment
 import concurrent.futures
 from tqdm import tqdm
 def get(key, page_num):
