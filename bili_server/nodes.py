@@ -21,25 +21,32 @@ class GraphNodes:
         self.question_rewriter = question_rewriter
         self.generate_chain = create_generate_chain(llm)
 
-    async def retrieve(self, state):
+    
+    def transform_query(self, state)->dict:
         """
-        根据输入问题检索文档，并将它们添加到图状态中。
-        Retrieve documents
+        重写提问
+        Transform the query to produce a better question.
 
         Args:
             state (dict): The current graph state
 
         Returns:
-            state (dict): New key added to state, documents, that contains retrieved documents
+            state (dict): Updates question key with a re-phrased question
         """
-        print("---节点：开始检索---")
-        question = state["input"]
+        print("---节点：重写用户输入的问题---")
 
-        # 执行检索
-        documents = await self.retriever.get_retriever(keywords=[question], page=1)
-        print(f"这是检索到的Docs:{documents}")
-        return {"documents": documents, "input": question}
-    
+        question = state["input"]
+        if "documents" in state:
+            documents = state["documents"]
+        else:
+            documents = "无参考信息"
+
+        # 问题重写
+        better_question = self.question_rewriter.invoke({"input": question, 
+                                                         "documents": documents})
+        print(f"这是重写的问题:{better_question}")
+        return {"documents": documents, "input": better_question}
+
     def parse_question(self,state) -> dict:
         """
         解析输入的问题
@@ -58,6 +65,7 @@ class GraphNodes:
         response = chat_with_ai(f"{GENERATE_KEYWORDS_TEMPLATE}\n{question}")
         input_keywords = re.split(r'[,\uFF0C]', response)
         return {"input_keywords": input_keywords, "input": question,
+                "documents": state["documents"],
                  "keywords_in_rag": [], "keywords_not_in_rag": []}
     
     def retrieve_keywords_in_RAG(self, state)->dict:
@@ -71,16 +79,17 @@ class GraphNodes:
             state (dict): New key added to state
         """
         keywords = state["input_keywords"]
-        # TODO: 根据关键词检索RAG
         keywords_in_rag = []
         keywords_not_in_rag = []
         for keyword in keywords:
+            # TODO: has_keyword需要检查文本是否足够重要
             if DocumentLoader.get_instance().has_keyword(keyword):
                 keywords_in_rag.append(keyword)
             else:
                 keywords_not_in_rag.append(keyword)
 
         return {"input_keywords": keywords, "input": state["input"],
+                "documents": state["documents"],
                  "keywords_in_rag": keywords_in_rag, "keywords_not_in_rag": keywords_not_in_rag}
 
     async def retrieve_and_store_keywords_via_Bili(self, state)->dict:
@@ -112,26 +121,6 @@ class GraphNodes:
         
         return state
 
-    def generate_answer(self, state)->dict:
-        """
-        使用输入问题和检索到的数据生成答案，并将生成添加到状态中
-
-        Args:
-            state (dict): The current graph state
-
-        Returns:
-            state (dict): New key added to state, generation, that contains LLM generation
-        """
-        print("---节点：生成响应---")
-
-        question = state["input"]
-        documents=DocumentLoader.getinstance().get_retriever(keywords=state["input_keywords"], mode="mix")
-        state["documents"]=documents
-
-        generation = self.generate_chain.invoke({"context": documents, "input": question})
-        print(f"生成的响应为:{generation}")
-        return {"documents": documents, "input": question, "generation": generation}
-
 
     def grade_documents(self, state)->dict:
         """
@@ -145,52 +134,70 @@ class GraphNodes:
         """
         print("---节点：检查检索到的文档是否与问题相关---")
         question = state["input"]
-        documents = state["documents"]
+        old_documents = state["documents"]
 
+        print(question)
+        print(type(question))
+        documents=DocumentLoader.get_instance().get_retriever(keywords=question, mode="local")
+        
+        print(f"这是检索到的Docs:{documents}")
 
+        if documents and old_documents:
+            # 比较两份文档哪个更好,赋值给document
+            pass
+        
         filtered_docs = []
 
-        for d in documents:
-            score = self.retrieval_grader.invoke({"input": question, "document": d.page_content})
-            grade = score["score"]
-            if grade == "yes":
-                print("---评估结果: 检索文档与问题相关---")
-                filtered_docs.append(d)
-            else:
-                print("---评估结果: 检索文档与问题不相关---")
-                continue
+
+        score = self.retrieval_grader.invoke({"input": question, "document": documents})
+        #TODO 正式版删除
+        print(documents)
+        grade = score["score"]
+        if grade == "yes":
+            print("---评估结果: 检索文档与问题相关---")
+        else:
+            print("---评估结果: 检索文档与问题不相关---")
 
         return {"documents": filtered_docs, "input": question}
 
-    def transform_query(self, state)->dict:
+    def generate_answer(self, state)->dict:
         """
-        重写提问
-        Transform the query to produce a better question.
+        使用输入问题和检索到的数据生成答案，并将生成添加到状态中
 
         Args:
             state (dict): The current graph state
 
         Returns:
-            state (dict): Updates question key with a re-phrased question
+            state (dict): New key added to state, generation, that contains LLM generation
         """
-        print("---节点：重写用户输入的问题---")
+        print("---节点：生成回答---")
 
         question = state["input"]
-        # TODO 这里需要检索的文档信息？
         documents = state["documents"]
 
-        # 问题重写
-        better_question = self.question_rewriter.invoke({"input": question})
-        print(f"这是重写的问题:{better_question}")
-        return {"documents": documents, "input": better_question}
+        generation = self.generate_chain.invoke({"context": documents, "input": question})
+        print(f"生成的回答为:{generation}")
+        return {"documents": documents, "input": question, "generation": generation}
+    
+    # def parse_answer(self,state)->dict:
+    #     """
+    #     对答案结构化输出
+    #     Args:
+    #         state (dict): The current graph state
 
-    def parse_answer(self,state)->dict:
-        """
-        对答案结构化输出
-        Args:
-            state (dict): The current graph state
+    #     Returns:
+    #         state (dict): New key added to state, answer, that contains the answer
+    #     """
+    #     print("---节点：结构化输出---")
+    #     generation=state["generation"]
+    #     chat_with_ai(f"""
+    #         你是一个内容总结专家，我会给你提供一份文字，你需要结构化输出一份回答，
+    #         针对提问的问题和参考资料，总结出回答，
+    #         每一条观点需要附上推荐的视频链接，格式如下：
+    #         1.xxx，推荐视频：[视频名字](视频链接)
+    #         2.xxx，推荐视频：[视频名字](视频链接)
+    #         问题：{state["input"]},
+    #         参考文档：{state["documents"]}
+    #     """)
 
-        Returns:
-            state (dict): New key added to state, answer, that contains the answer
-        """
-        print("---节点：结构化输出---")
+    #     return{"input": state["input"], "generation":None}
