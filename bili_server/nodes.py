@@ -50,16 +50,17 @@ class GraphNodes:
             state (dict): New key added to state, input_keywords, that contains input keywords
         """
         question = state["input"]
-        # 解析问题类型
-        question_type = classify_question_type(question)
-        state["question_type"] = question_type
+        # # 解析问题类型
+        # question_type = classify_question_type(question)
+        # state["question_type"] = question_type
         # 生成关键字
         response = chat_with_ai(f"{GENERATE_KEYWORDS_TEMPLATE}\n{question}")
-        state["input_keywords"] = response.split(',')
+        input_keywords = response.split(',')
 
-        return {"input_keywords": state["input_keywords"], "input": question}
+        return {"input_keywords": input_keywords, "input": question,
+                 "keywords_in_rag": [], "keywords_not_in_rag": []}
     
-    def retrieve_keywords_in_RAG(self, state):
+    def retrieve_keywords_in_RAG(self, state)->dict:
         """
         根据关键词检索RAG，将检索到的关键词添加到图状态中
 
@@ -71,13 +72,18 @@ class GraphNodes:
         """
         keywords = state["input_keywords"]
         # TODO: 根据关键词检索RAG
+        keywords_in_rag = []
+        keywords_not_in_rag = []
         for keyword in keywords:
             if DocumentLoader.get_instance().has_keyword(keyword):
-                state["keywords_in_rag"].append(keyword)
+                keywords_in_rag.append(keyword)
             else:
-                state["keywords_not_in_rag"].append(keyword)
+                keywords_not_in_rag.append(keyword)
 
-    async def retrieve_and_store_keywords_via_Bili(self, state):
+        return {"input_keywords": keywords, "input": state["input"],
+                 "keywords_in_rag": keywords_in_rag, "keywords_not_in_rag": keywords_not_in_rag}
+
+    async def retrieve_and_store_keywords_via_Bili(self, state)->dict:
         """
         根据关键词检索Bilibili
 
@@ -101,7 +107,7 @@ class GraphNodes:
         
         return state
 
-    def generate_answer(self, state):
+    def generate_answer(self, state)->dict:
         """
         使用输入问题和检索到的数据生成答案，并将生成添加到状态中
 
@@ -117,12 +123,11 @@ class GraphNodes:
         documents=DocumentLoader.getinstance().get_retriever(keywords=state["input_keywords"], mode="mix")
         state["documents"]=documents
 
-        # TODO 基于RAG生成
         generation = self.generate_chain.invoke({"context": documents, "input": question})
         print(f"生成的响应为:{generation}")
         return {"documents": documents, "input": question, "generation": generation}
 
-    def grade_documents(self, state):
+    def grade_documents(self, state)->dict:
         """
         判断检索到的文档是否与问题相关
 
@@ -151,7 +156,7 @@ class GraphNodes:
 
         return {"documents": filtered_docs, "input": question}
 
-    def transform_query(self, state):
+    def transform_query(self, state)->dict:
         """
         重写提问
         Transform the query to produce a better question.

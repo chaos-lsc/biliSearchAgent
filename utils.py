@@ -109,6 +109,9 @@ def create_workflow():
     # transform query
     workflow.add_node("transform_query", graph_nodes.transform_query)
 
+    # TODO 需要修改，添加功能后删除注释
+    # workflow.add_node("split_text_by_semantics", graph_nodes.split_text_by_semantics)
+
     # 创建图
     workflow.set_entry_point("init_state")
     workflow.add_edge("init_state", "retrieve_keywords_in_RAG")
@@ -120,6 +123,7 @@ def create_workflow():
             "generate_answer": "generate_answer",
         }
     )
+    workflow.add_edge("generate_answer", "grade_documents")
     # workflow.add_edge("retrieve_and_store_keywords_via_bili", "retrieve")
     # workflow.add_conditional_edges(
     #     "generate_answer",
@@ -138,6 +142,7 @@ def create_workflow():
 
 if __name__ == '__main__':
     # from langgraph.visualization import display_graph
+
     try:
         chain = create_workflow()
         print(chain.get_graph().draw_mermaid_png())

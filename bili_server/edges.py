@@ -10,6 +10,7 @@ class EdgeGraph:
         """
         keywords = state["input_keywords"]
 
+        # TODO 需要修改
         if state["keywords_not_in_rag"]:
             return "retrieve_and_store_keywords_via_bili"
         else:

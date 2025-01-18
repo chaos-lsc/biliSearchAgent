@@ -21,14 +21,3 @@ class GraphState(TypedDict):
     keywords_not_in_rag: List[str]
     generation: str
     documents: str
-
-    def __init__(self, input: str, question_type: QuestionType, input_keywords: List[str] = None, 
-                 keywords_in_rag: List[str] = None, keywords_not_in_rag: List[str] = None, 
-                 generation: str = "", documents: str = ""):
-        self.input = input
-        self.question_type = question_type
-        self.input_keywords = input_keywords if input_keywords is not None else []
-        self.keywords_in_rag = keywords_in_rag if keywords_in_rag is not None else []
-        self.keywords_not_in_rag = keywords_not_in_rag if keywords_not_in_rag is not None else []
-        self.generation = generation
-        self.documents = documents
