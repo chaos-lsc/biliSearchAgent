@@ -10,6 +10,7 @@ from bili_server.qa_tools.question_type_classify import classify_question_type
 from bili_server.rag_tools.document_loader import DocumentLoader
 from bili_server.qa_tools.chat_with_ai import chat_with_ai
 import re
+from typing import List
 
 class GraphNodes:
     def __init__(self, llm, retriever, retrieval_grader, hallucination_grader, code_evaluator, question_rewriter):
@@ -107,13 +108,16 @@ class GraphNodes:
         
 
         from get_bilibili_data import get_data
-        documents=get_data.get(missing_keywords,page_num=1)
-        try:
-            print(f"检索到的文档为[前200字符]: {documents[:100]}")
-        except:
-            print()
-
-        DocumentLoader.get_instance().create_graph_store(documents)
+        documents:List[str] = get_data.get(missing_keywords,page_num=1)
+        # try: 
+        #     print(f"检索到的文档为[前200字符]: {documents[:100]}")
+        # except:
+        #     print()
+        for document in documents:
+            print(f"检索到的文档为:{document}")
+            document = chat_with_ai(f"你需要将一份可能存在记录错误的文档精简成精炼准确的形式，去除口语化表达，
+                                  遇到不通顺的地方考虑使用同音词语推断正确的意思，文档如下："+document)
+            DocumentLoader.get_instance().create_graph_store(document)
         
         return state
 
