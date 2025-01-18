@@ -25,8 +25,6 @@ import networkx as nx
 
 WORKING_DIR = "./dickens"
 
-G = nx.read_graphml(WORKING_DIR + "/graph_chunk_entity_relation.graphml")
-
 if not os.path.exists(WORKING_DIR):
     os.mkdir(WORKING_DIR)
 
@@ -84,9 +82,15 @@ class DocumentLoader:
         """
         # Get all nodes that have edges
         nodes_with_edges = set()
-        for u, v in G.edges():
-            nodes_with_edges.add(u)
-            nodes_with_edges.add(v)
+        graph_file_path = WORKING_DIR + "/graph_chunk_entity_relation.graphml"
+        if os.path.exists(graph_file_path):
+            G = nx.read_graphml(graph_file_path)
+            if G.number_of_nodes() > 0:
+                for u, v in G.edges():
+                    nodes_with_edges.add(u)
+                    nodes_with_edges.add(v)
+        else:
+            print(f"文件 {graph_file_path} 不存在。")
 
         # if nodes_with_edges:
         #     # Print all nodes that have edges

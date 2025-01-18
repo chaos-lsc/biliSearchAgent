@@ -9,6 +9,7 @@ from bili_server.qa_tools.prompt_template import GENERATE_KEYWORDS_TEMPLATE
 from bili_server.qa_tools.question_type_classify import classify_question_type
 from bili_server.rag_tools.document_loader import DocumentLoader
 from bili_server.qa_tools.chat_with_ai import chat_with_ai
+import re
 
 class GraphNodes:
     def __init__(self, llm, retriever, retrieval_grader, hallucination_grader, code_evaluator, question_rewriter):
@@ -55,8 +56,7 @@ class GraphNodes:
         # state["question_type"] = question_type
         # 生成关键字
         response = chat_with_ai(f"{GENERATE_KEYWORDS_TEMPLATE}\n{question}")
-        input_keywords = response.split(',')
-
+        input_keywords = re.split(r'[,\uFF0C]', response)
         return {"input_keywords": input_keywords, "input": question,
                  "keywords_in_rag": [], "keywords_not_in_rag": []}
     
