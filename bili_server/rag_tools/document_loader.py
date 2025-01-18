@@ -75,7 +75,11 @@ class DocumentLoader:
                 embedding_dim=1024,  # BAAI/bge-m3 支持 1024 dim
                 max_token_size=8192,
                 func=embedding_func
-            )
+            ),
+            addon_params={
+                "entity_types": ["organization", "person", "geo", "event", "category", "videoID",],
+                "language": "中文",
+            }
         )
 
     def has_keyword(self, keyword: str) -> bool:
