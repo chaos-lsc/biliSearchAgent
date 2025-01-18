@@ -148,6 +148,12 @@ class DocumentLoader:
         """
         print("开始进行文本检索")
         retriever_result = self.rag.query(query=keywords, param=QueryParam(mode=mode))
+        # TODO：对比测试一下那种方式检索出来的内容更好
+        # rag.query_with_separate_keyword_extraction(
+        # "What are the top themes in this story?",
+        # "You need to answer me this question in as simple language as you can. Just know that a 5 year old should understand it.",
+        # param=QueryParam(mode="hybrid")
+        # )
         print(f"检索到的数据为：{retriever_result}")
         return retriever_result
 
