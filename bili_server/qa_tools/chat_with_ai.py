@@ -15,12 +15,14 @@ def chat_with_ai(question_with_prompt: str) -> str:
     client = OpenAI(api_key=os.getenv("GLM_API_KEY"),
                   base_url=os.getenv("GLM_API_BASE"),
                   )
-    
-    response = client.chat.completions.create(
-        model="glm-4-flash",
-        messages=[{"role": "user", "content": question_with_prompt}],
-        top_p=0.7,
-        temperature=0.95,
-        max_tokens=1024,
-    )
+    try:
+        response = client.chat.completions.create(
+            model="glm-4-flash",
+            messages=[{"role": "user", "content": question_with_prompt}],
+            top_p=0.7,
+            temperature=0.95,
+            max_tokens=1024,
+        )
+    except Exception as e:
+        print(f"Error: {e}")
     return response.choices[0].message.content

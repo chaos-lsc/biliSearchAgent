@@ -148,7 +148,7 @@ def create_workflow():
         edge_graph.grade_generation_v_documents_and_question,
         {
             "useful":END,
-            "not useful":"transform_query",
+            "not useful":"retrieve_keywords_in_RAG",
             "not supported":"transform_query",
         }
     )
