@@ -88,12 +88,12 @@ class DocumentLoader:
             nodes_with_edges.add(u)
             nodes_with_edges.add(v)
 
-        if nodes_with_edges:
-            # Print all nodes that have edges
-            for node in nodes_with_edges:
-                print(f"Node: {node}")
-                print(f"Node Properties: {G.nodes[node]}")
-                print("---")
+        # if nodes_with_edges:
+        #     # Print all nodes that have edges
+        #     for node in nodes_with_edges:
+        #         print(f"Node: {node}")
+        #         print(f"Node Properties: {G.nodes[node]}")
+        #         print("---")
         
         if keyword in nodes_with_edges:
             print(f"关键词 '{keyword}' 存在于节点中。")
