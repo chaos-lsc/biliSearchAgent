@@ -101,9 +101,14 @@ class GraphNodes:
             #TODO: 执行检索
             #documents =
             #get_docs(missing_keywords, page=1)
-            #print(f"检索到的文档为: {documents}")
+            from get_bilibili_data import get_data
+            documents=get_data.get(missing_keywords,page_num=1)
+            try:
+                print(f"检索到的文档为[前200字符]: {documents[:100]}")
+            except:
+                print()
             #TODO: 向rag中添加
-            #await self.rag.create_graph_store(documents)
+            await self.rag.create_graph_store(documents)
         
         return state
 
