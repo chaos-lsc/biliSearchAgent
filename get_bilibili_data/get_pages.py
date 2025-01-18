@@ -177,11 +177,12 @@ async def bilibili_detail_pipiline(keywords: List, page: int):
                     sc_foldier=int(get_content_between_start_end(page,r'收藏数:(.*?)\\n标签'))
 
                     display_count = int(get_content_between_start_end(page, r'播放量:(.*?)\\n弹幕数'))
+                    title = get_content_between_start_end(page, r'标题: (.*?)描述')
                     if(sc_foldier>=10000 and display_count>=100000):
                         is_useful=True
                     else:
                         is_useful=False
-                    get_result.append([page, BV,AV,is_useful])
+                    get_result.append([page, BV,AV,is_useful,title])
                 except:
                     continue
         return get_result
@@ -199,4 +200,4 @@ def get(key_word,page):
 
 from pprint import pprint
 if __name__ == '__main__':
-    get("神经网络",1)
+    pprint(get("智能体",1))
