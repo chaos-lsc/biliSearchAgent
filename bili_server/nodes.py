@@ -6,8 +6,9 @@
 from bili_server.generate_chain import create_generate_chain
 # from bili_server.qa_tools.function_tools import common_question_tool
 from bili_server.qa_tools.prompt_template import GENERATE_KEYWORDS_TEMPLATE
-from bili_server.qa_tools.chat_with_ai import chat_with_ai
+from bili_server.qa_tools.question_type_classify import classify_question_type
 from bili_server.rag_tools.document_loader import DocumentLoader
+from bili_server.qa_tools.chat_with_ai import chat_with_ai
 
 class GraphNodes:
     def __init__(self, llm, retriever, retrieval_grader, hallucination_grader, code_evaluator, question_rewriter):
@@ -71,7 +72,7 @@ class GraphNodes:
         keywords = state["input_keywords"]
         # TODO: 根据关键词检索RAG
         for keyword in keywords:
-            if DocumentLoader.getinstance().has_keyword(keyword):
+            if DocumentLoader.get_instance().has_keyword(keyword):
                 state["keywords_in_rag"].append(keyword)
             else:
                 state["keywords_not_in_rag"].append(keyword)
@@ -113,7 +114,8 @@ class GraphNodes:
         print("---节点：生成响应---")
 
         question = state["input"]
-        documents = state["documents"]
+        documents=DocumentLoader.getinstance().get_retriever(keywords=state["input_keywords"], mode="mix")
+        state["documents"]=documents
 
         # TODO 基于RAG生成
         generation = self.generate_chain.invoke({"context": documents, "input": question})
