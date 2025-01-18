@@ -94,46 +94,68 @@ def create_workflow():
 
     # 定义节点
 
+    # 重写问题，使其更符合模型理解
+    workflow.add_node("transform_query", graph_nodes.transform_query)
     # init state
-    workflow.add_node("init_state", graph_nodes.parse_question)
+    workflow.add_node("parse_question", graph_nodes.parse_question)
     # RAG 中检索关键词实体是否存在
     workflow.add_node("retrieve_keywords_in_RAG", graph_nodes.retrieve_keywords_in_RAG)
     # 向RAG中添加缺少的语料，无需检索文本
     workflow.add_node("retrieve_and_store_keywords_via_bili",graph_nodes.retrieve_and_store_keywords_via_Bili)
+
+    # 查询文档评估
+    workflow.add_node("grade_documents", graph_nodes.grade_documents)
     
     # 检索 RAG，输出回答
     workflow.add_node("generate_answer", graph_nodes.generate_answer)
 
-    # grade documents
-    workflow.add_node("grade_documents", graph_nodes.grade_documents)
-    # transform query
-    workflow.add_node("transform_query", graph_nodes.transform_query)
+    # 结构化输出
+    workflow.add_node("parse_answer", graph_nodes.parse_answer)
 
-    # TODO 需要修改，添加功能后删除注释
-    # workflow.add_node("split_text_by_semantics", graph_nodes.split_text_by_semantics)
 
     # 创建图
-    workflow.set_entry_point("init_state")
-    workflow.add_edge("init_state", "retrieve_keywords_in_RAG")
+
+    # 入口
+    workflow.set_entry_point("transform_query")
+    # 转写提问-->解析提问
+    workflow.add_edge("transform_query", "parse_question")
+    # 解析提问-->RAG中检索
+    workflow.add_edge("parse_question", "retrieve_keywords_in_RAG")
+    # 是否检索到，检索到就评估文档，没检索到去B站实时检索数据
     workflow.add_conditional_edges(
         "retrieve_keywords_in_RAG",
         edge_graph.decide_to_retrieve_keywords,
         {
             "retrieve_and_store_keywords_via_bili": "retrieve_and_store_keywords_via_bili",
+            "grade_documents": "grade_documents",
+        }
+    )
+    # B站实时检索数据后，评估文档
+    workflow.add_edge("retrieve_and_store_keywords_via_bili", "grade_documents")
+    # 评估文档后，认可的化生成回答，不认可就转写提问
+    workflow.add_conditional_edges(
+        "grade_documents",
+        edge_graph.decide_to_generate_answer,
+        {
+            "transform_query": "transform_query",
             "generate_answer": "generate_answer",
         }
     )
-    workflow.add_edge("generate_answer", "grade_documents")
-    # workflow.add_edge("retrieve_and_store_keywords_via_bili", "retrieve")
-    # workflow.add_conditional_edges(
-    #     "generate_answer",
-    #     edge_graph.grade_generation_v_documents_and_question,
-    #     {
-    #         "not supported": "generate_answer",
-    #         "useful": END,
-    #         "not useful": "transform_query",
-    #     }
-    # )
+    # 评估生成内容，认可就结构化输出，不认可就重新生成回答
+    workflow.add_conditional_edges(
+        "generate_answer",
+        edge_graph.grade_generation_v_documents_and_question,
+        {
+            "useful":"parse_answer",
+            "not useful":"generate_answer",
+            "not supported":"transform_query",
+        }
+    )
+
+    
+    # 结束节点，输出结构化回答
+    workflow.add_edge("parse_answer", END)
+    
 
     # 编译图
     chain = workflow.compile()

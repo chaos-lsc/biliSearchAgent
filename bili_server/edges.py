@@ -17,7 +17,7 @@ class EdgeGraph:
             return "generate_answer"
 
 
-    def decide_to_generate(self, state):
+    def decide_to_generate_answer(self, state):
         """
         根据过滤后的文档与输入问题的相关性确定是生成答案还是重新生成问题。如果所有文档都不相关，则决定转换查询；否则，它决定生成答案。
         Determines whether to generate an answer, or re-generate a question.
@@ -38,7 +38,7 @@ class EdgeGraph:
         else:
 
             print("---决策：生成最终响应---")
-            return "generate"
+            return "generate_answer"
 
     def grade_generation_v_documents_and_question(self, state):
         """

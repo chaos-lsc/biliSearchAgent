@@ -127,6 +127,7 @@ class GraphNodes:
         print(f"生成的响应为:{generation}")
         return {"documents": documents, "input": question, "generation": generation}
 
+
     def grade_documents(self, state)->dict:
         """
         判断检索到的文档是否与问题相关
@@ -177,3 +178,14 @@ class GraphNodes:
         better_question = self.question_rewriter.invoke({"input": question})
         print(f"这是重写的问题:{better_question}")
         return {"documents": documents, "input": better_question}
+
+    def parse_answer(self,state)->dict:
+        """
+        对答案结构化输出
+        Args:
+            state (dict): The current graph state
+
+        Returns:
+            state (dict): New key added to state, answer, that contains the answer
+        """
+        print("---节点：结构化输出---")
