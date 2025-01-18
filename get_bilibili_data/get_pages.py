@@ -96,7 +96,6 @@ async def process_search_results(results):
 
                 comments = ''
                 # comments = await fetch_comments(oid, 1, 30)  # 异步获取评论
-
                 processed_data = [
                     item.get('type', '未知类型'),
                     item.get('author', '未知作者'),
@@ -128,6 +127,16 @@ async def process_search_results(results):
 
 
 # @retry_request(retries=5, delay=1, backoff=1.5)
+import re
+def get_content_between_start_end(text,pattern):
+    # 使用正则表达式匹配“开始:XXXX结束”的内容
+
+    match = re.search(pattern, text, re.DOTALL)
+    if match:
+        return match.group(1)  # 返回匹配到的内容
+    else:
+        return None  # 如果没有匹配到，返回None
+
 async def bilibili_detail_pipiline(keywords: List, page: int):
     all_results = []  # 初始化一个列表来存储所有关键词和页面的结果
     get_result=[]
@@ -148,6 +157,10 @@ async def bilibili_detail_pipiline(keywords: List, page: int):
                 "keyword": keyword,
                 "real_data": real_data
             })
+        #print(
+        #    f"all_results: {json.dumps(all_results, indent=4, ensure_ascii=False)}")
+        from pprint import pprint
+        #pprint(real_data)
         import re
         #print(len(real_data.split("类型")))
         pages=real_data.split("类型")
@@ -160,14 +173,22 @@ async def bilibili_detail_pipiline(keywords: List, page: int):
                     AV = matches[0].replace("http://www.bilibili.com/video/av", "")
                     BV = abv_switch.av2bv(int(AV))
                     AV=int(AV)
-                    get_result.append([page, BV,AV])
+                    #pattern = r'开始:(.*?)结束'
+                    sc_foldier=int(get_content_between_start_end(page,r'收藏数:(.*?)\\n标签'))
+
+                    display_count = int(get_content_between_start_end(page, r'播放量:(.*?)\\n弹幕数'))
+                    if(sc_foldier>=10000 and display_count>=100000):
+                        is_useful=True
+                    else:
+                        is_useful=False
+                    get_result.append([page, BV,AV,is_useful])
                 except:
                     continue
         return get_result
 
 from pprint import pprint
-from get_bilibili_data import abv_switch
-def get_pages(key_word,page):
+import abv_switch
+def get(key_word,page):
     if(len(key_word)<=6):
         key_word+=key_word
     import asyncio
@@ -178,4 +199,4 @@ def get_pages(key_word,page):
 
 from pprint import pprint
 if __name__ == '__main__':
-    pprint(get("神经网络",1))
+    get("神经网络",1)
