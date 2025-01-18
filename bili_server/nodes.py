@@ -115,9 +115,12 @@ class GraphNodes:
         #     print()
         for document in documents:
             print(f"检索到的文档为:{document}")
-            document = chat_with_ai(f"你需要将一份可能存在记录错误的文档精简成精炼准确的形式，去除口语化表达，
-                                  遇到不通顺的地方考虑使用同音词语推断正确的意思，文档如下："+document)
-            DocumentLoader.get_instance().create_graph_store(document)
+            document = chat_with_ai(f"""你需要将一份可能存在记录错误的文档精简成精炼准确的形式,
+                                    精简后必须仍然包含视频标题、视频号的内容，去除口语化表达,
+                                  遇到不通顺的地方考虑使用同音词语推断正确的意思，文档如下：""" + document)
+            print(f"精简后的文档为:{document}")
+            print("---------------------------------")
+            await DocumentLoader.get_instance().create_graph_store(document)
         
         return state
 
@@ -146,7 +149,7 @@ class GraphNodes:
             # 比较两份文档哪个更好,赋值给document
             pass
         
-        filtered_docs = []
+        # filtered_docs = []
 
 
         score = self.retrieval_grader.invoke({"input": question, "document": documents})
@@ -156,9 +159,10 @@ class GraphNodes:
         if grade == "yes":
             print("---评估结果: 检索文档与问题相关---")
         else:
+            documents = ["没有检索到相关文档"]
             print("---评估结果: 检索文档与问题不相关---")
 
-        return {"documents": filtered_docs, "input": question}
+        return {"documents": documents, "input": question}
 
     def generate_answer(self, state)->dict:
         """
@@ -175,8 +179,13 @@ class GraphNodes:
         question = state["input"]
         documents = state["documents"]
 
-        generation = self.generate_chain.invoke({"context": documents, "input": question})
-        print(f"生成的回答为:{generation}")
+        try:
+            print(documents)
+            generation = self.generate_chain.invoke({"context": documents, "input": question})
+            print(f"生成的回答为:{generation}")
+        except Exception as e:
+            generation = "生成失败"
+            print(f"Error: {e}")
         return {"documents": documents, "input": question, "generation": generation}
     
     # def parse_answer(self,state)->dict:
