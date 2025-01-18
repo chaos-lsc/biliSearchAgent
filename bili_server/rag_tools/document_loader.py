@@ -139,7 +139,7 @@ class DocumentLoader:
         """
         self.rag.insert(docs)
 
-    async def get_retriever(self, keywords: List[str], mode: Literal['local', 'global', 'hybrid', 'naive', 'mix'] = "mix") -> Any:
+    def get_retriever(self, keywords: str, mode: Literal['local', 'global', 'hybrid', 'naive', 'mix'] = "mix") -> Any:
         """
         Retrieves documents and returns a retriever based on the documents.
 
@@ -167,7 +167,7 @@ if __name__ == '__main__':
         # 从 .env 文件加载环境变量
         load_dotenv(find_dotenv())
 
-        loader = DocumentLoader()
-        await loader.get_retriever(keywords=["如何学习使用ChatGLM3-6b"])
+        # loader = DocumentLoader()
+        # await loader.get_retriever(keywords=["如何学习使用ChatGLM3-6b"])
 
     asyncio.run(main())

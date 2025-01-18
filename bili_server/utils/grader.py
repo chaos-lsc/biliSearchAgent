@@ -129,13 +129,14 @@ class GraderUtils:
 
             这是初始问题: {input}
 
+            这是可以检索的文档：{documents}
+
             形成一个改进的问题.""",
 
-            input_variables=["input"],
+            input_variables=["input", "documents"],
         )
 
         question_rewriter = re_write_prompt | self.model | StrOutputParser()
-
         return question_rewriter
 
 
