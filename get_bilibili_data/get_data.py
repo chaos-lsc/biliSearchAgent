@@ -1,41 +1,46 @@
-from pprint import pprint
+from langgraph.types import PregelTask
+import requests
+import winreg as reg
+import winreg
+import ctypes
+import os
 import sys
 
-import os
-current_file_path = os.path.abspath(__file__)
-
-# 获取当前文件所在的目录
-current_dir = os.path.dirname(current_file_path)
-
+# 获取当前工作目录
+current_dir = os.getcwd()
 sys.path.append(current_dir)
+import os
+import sys
+
+# 获取当前工作目录
+current_dir = os.getcwd()
+sys.path.append(f"{current_dir}\\get_bilibili_data")
 import get_pages
-import get_cc
-import get_comment
-import concurrent.futures
-from tqdm import tqdm
-def get(key, page_num):
-    def process_page(page):
-        video_data = page[0]
-        BV = page[1]
-        AV=page[2]
-        try:
-            cc = get_cc.get(BV)
-        except:
-            cc = "没有字幕"
-        comment = get_comment.get(AV)
-        return [video_data, cc, comment]
+import random
+import download_cc
 
-    datas = []
+def get(key,page_num):
+    FailCount = 0
+    CCFailCount = 0
     pages = get_pages.get(key, page_num)
-
-    # 使用tqdm创建进度条
-    with tqdm(total=len(pages), desc="Processing") as pbar:
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = [executor.submit(process_page, page) for page in pages]
-            for future in concurrent.futures.as_completed(futures):
-                data = future.result()
-                datas.append(data)
-                # 每完成一个任务，进度条前进一格
-                pbar.update(1)
-
-    return datas
+    result=""
+    for page in pages:
+        try:
+            BV = page[1]
+            is_useful=page[3]
+            if(is_useful==True):
+                try:
+                    cc = download_cc.get(BV)  # 第一种CC
+                except:
+                    CCFailCount += 1
+                    print(f"FailCountf:{CCFailCount}")
+                try:
+                    print(cc)
+                except:
+                    print("CC FAIL")
+                    cc=""
+                result+=f"{page[0]} {cc}"
+                result += "\n"
+        except:
+            print(f"FailCount:{FailCount}")
+#get("七岁的理想",5)
