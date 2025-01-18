@@ -76,7 +76,7 @@ class DocumentLoader:
             ),
             addon_params={
                 "entity_types": ["organization", "person", "geo", "event", "category", "videoID",],
-                "language": "中文",
+                "language": "Simplified Chinese",
             }
         )
 
