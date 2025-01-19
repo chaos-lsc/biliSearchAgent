@@ -192,8 +192,10 @@ with st.container():
         with col_input:
             # 使用 st.empty() 创建一个可替换的容器
             input_text_container = st.empty()
-            # # 在容器中添加文本输入框
-            # input_text = input_text_container.text_input("", placeholder="请输入问题:", key="input")
+            # 使用 st.empty() 创建一个可替换的容器
+            input_text_container = st.empty()
+            # 在容器中添加文本输入框
+            input_text = input_text_container.text_input("", placeholder="请输入问题:", key="input")
         with col_search:
             st.markdown('<div class="buttons-column">', unsafe_allow_html=True)
             search_button = st.button("搜索", key="search")
@@ -209,8 +211,6 @@ with st.container():
 if clear_button:
     # 使用 st.empty() 重新创建一个空的容器，替换原来的文本输入框
     input_text_container.empty()
-    # 在新的容器中添加一个新的文本输入框
-    input_text = st.text_input("", placeholder="请输入问题:", key="input")
     # 清空输入框中的文本，但保留输入框
     st.session_state.input_text = ""
     # 手动更新 input_text 变量的值
