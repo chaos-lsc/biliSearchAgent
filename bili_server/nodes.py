@@ -140,7 +140,7 @@ class GraphNodes:
 
                 print(f"检索到的文档为:{document}")
                 document = chat_with_ai(f"""你需要总结一份可能存在记录错误的内容,
-                                        要求如下：\n1.简洁，用陈列方式输出\n2.字数在300字内。
+                                        要求如下：\n简洁，用陈列方式输出，其中表述部分使用自然语言连续输出，\n
                                         总结后必须仍然包含视频标题、视频号的内容，去除口语化表达,
                                     遇到不通顺的地方考虑使用同音词语推断正确的意思，内容如下：""" + document)
                 print(f"精简后的文档为:{document}")
@@ -166,12 +166,13 @@ class GraphNodes:
 
         print(question)
         print(type(question))
-        documents=DocumentLoader.get_instance().get_retriever(keywords=question, mode="local")
+        documents=DocumentLoader.get_instance().get_retriever(keywords=f"""你需要根据关键词{question}
+                                                              检索相关性强的条目，不要输出相关性较差的条目""", mode="local")
         
         print(f"这是检索到的Docs:{documents}")
 
         if documents and old_documents:
-            # 比较两份文档哪个更好,赋值给document
+            # TODO 比较两份文档哪个更好,赋值给document
             pass
         
         # filtered_docs = []
