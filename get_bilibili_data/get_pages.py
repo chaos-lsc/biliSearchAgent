@@ -137,26 +137,24 @@ def get_content_between_start_end(text,pattern):
     else:
         return None  # 如果没有匹配到，返回None
 
-async def bilibili_detail_pipiline(keywords: List, page: int):
+async def bilibili_detail_pipiline(keywords: List, page_index: int):
     all_results = []  # 初始化一个列表来存储所有关键词和页面的结果
     get_result=[]
     for keyword in keywords:  # 遍历关键词
 
         keyword_results = []
 
-        for page in range(page):  # 循环从第1页到第10页
-            # 根据关键字和页数获取页面中信息
-            result = await search.search(keyword=keyword, page=page)
-            # print(f"result: {json.dumps(result, indent=4, ensure_ascii=False)}")
-            # 根据result字段获取详细信息
-            keyword_results.extend(result.get('result', []))  # 累积当前关键词的所有页面的结果
+        result = await search.search(keyword=keyword, page=page_index)
+        # print(f"result: {json.dumps(result, indent=4, ensure_ascii=False)}")
+        # 根据result字段获取详细信息
+        keyword_results.extend(result.get('result', []))  # 累积当前关键词的所有页面的结果
 
-            real_data = await process_search_results(keyword_results)
+        real_data = await process_search_results(keyword_results)
 
-            all_results.append({
-                "keyword": keyword,
-                "real_data": real_data
-            })
+        all_results.append({
+            "keyword": keyword,
+            "real_data": real_data
+        })
         #print(
         #    f"all_results: {json.dumps(all_results, indent=4, ensure_ascii=False)}")
         from pprint import pprint
@@ -189,15 +187,15 @@ async def bilibili_detail_pipiline(keywords: List, page: int):
 
 from pprint import pprint
 import abv_switch
-def get(key_word,page):
+def get(key_word,index):
     if(len(key_word)<=6):
         key_word+=key_word
     import asyncio
     # asyncio.run(get_video_detail_info(keyword="ChatGLM3-6B模型的本地部署", page=1))
     get_result=asyncio.run(bilibili_detail_pipiline(keywords=[key_word],
-                                         page=page))
+                                         page_index=index))
     return get_result
 
 from pprint import pprint
 if __name__ == '__main__':
-    pprint(get("智能体",1))
+    pprint(get("智能体",2))

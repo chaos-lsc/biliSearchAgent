@@ -106,54 +106,6 @@ def show_kg_stats_dialog():
         st.markdown(f"❌ **Error getting graph stats:** {str(e)}")
 
 
-def show_kg_stats():
-    """Show knowledge graph statistics."""
-    try:
-        rag=DocumentLoader.get_instance().rag
-        status_message = ""
-        if rag is None:
-            status_message = "Knowledge Graph not initialized yet"
-            return
-            
-        graph = rag.chunk_entity_relation_graph._graph
-        if graph is None:
-            status_message = "Knowledge Graph is empty"
-            return
-            
-        # Calculate stats
-        nodes = graph.number_of_nodes()
-        edges = graph.number_of_edges()
-        avg_degree = round(sum(dict(graph.degree()).values()) / nodes, 2) if nodes > 0 else 0
-        
-        # Create degree distribution for plotting
-        degrees = dict(graph.degree())
-        degree_dist = {}
-        for d in degrees.values():
-            degree_dist[d] = degree_dist.get(d, 0) + 1
-            
-        # Create plot
-        fig = go.Figure(data=[
-            go.Bar(x=list(degree_dist.keys()), y=list(degree_dist.values()))
-        ])
-        fig.update_layout(
-            title="Node Degree Distribution",
-            xaxis_title="Degree",
-            yaxis_title="Count"
-        )
-        
-    #     # Update state with stats and plot
-    #     state.kg_stats = {
-    #         "nodes": nodes,
-    #         "edges": edges,
-    #         "avg_degree": avg_degree,
-    #         "plot": fig
-    #     }
-    #     state.show_kg_stats = True
-        
-    except Exception as e:
-        logger.error(f"Error getting graph stats: {str(e)}")
-        status_message = f"Error getting graph stats: {str(e)}"
-
 # 使用 Markdown 和样式增强标题，包括图标和渐变色
 st.markdown("""
 <h1 style='text-align: center; color: blue; background: linear-gradient(to right, red, purple); -webkit-background-clip: text; -webkit-text-fill-color: transparent;'>
@@ -259,13 +211,8 @@ if search_button:
             if responses:
                 st.subheader('分析结果')
                 last_response = responses[-1]
-                print(last_response)
-                print("--------------")
-                if last_response is not None and "generation" in last_response:
-                    print(last_response["generation"])
-                    st.markdown(last_response["generation"])
-                else:
-                    st.markdown("No generation data available.")
+                st.markdown(last_response["generate_answer"]["generation"])
+
         except Exception as e:
             st.error(f"处理时出现错误: {str(e)}")
             print(last_response["generation"])
