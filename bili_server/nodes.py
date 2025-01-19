@@ -106,26 +106,46 @@ class GraphNodes:
         keywords = state["input_keywords"]
         missing_keywords = [keyword for keyword in keywords if not state["keywords_in_rag"]]
         
-
+        # 视频已存在，则增加检索页数
         from get_bilibili_data import get_data
-        documents:List[str] = get_data.get(missing_keywords,page_num=1)
-        
-        for document in documents:
-            # 内容多与100才被收录
-            if "内容" in document:
-                content_start = document.find("内容") + len("内容")
-                content = document[content_start:].strip()
-                if len(content) < 100:
-                    continue
+        flag=False
+        page_num=1
+        print(111111111)
+        while(flag==False):
+            documents:List[str] = get_data.get(missing_keywords,page_num)
+            print(documents)
+            for document in documents:
+                print(f"检索到的文档为:{document}")
+                
+                video_number=result = document.split('BV号')[1].split('，')[0]
+                print(f"BV号: {video_number}")
+                if video_number is not None:
+                    result = DocumentLoader.get_instance().get_retriever(f"已有数据中是否包含视频号为{video_number}数据，回答一个字：是或否","local")
+                    if "是" in result:
+                        print("视频已存在，跳过")
+                        page_num=page_num+1
+                        continue
+                    else:
+                        flag=True
+                        break
 
-            print(f"检索到的文档为:{document}")
-            document = chat_with_ai(f"""你需要总结一份可能存在记录错误的内容,
-                                    要求如下：\n1.简洁，用陈列方式输出\n2.字数在300字内。
-                                    总结后必须仍然包含视频标题、视频号的内容，去除口语化表达,
-                                  遇到不通顺的地方考虑使用同音词语推断正确的意思，内容如下：""" + document)
-            print(f"精简后的文档为:{document}")
-            print("---------------------------------")
-            await DocumentLoader.get_instance().create_graph_store(document)
+        
+            for document in documents:
+                # 内容多与100才被收录
+                if "内容" in document:
+                    content_start = document.find("内容") + len("内容")
+                    content = document[content_start:].strip()
+                    if len(content) < 100:
+                        continue
+
+                print(f"检索到的文档为:{document}")
+                document = chat_with_ai(f"""你需要总结一份可能存在记录错误的内容,
+                                        要求如下：\n1.简洁，用陈列方式输出\n2.字数在300字内。
+                                        总结后必须仍然包含视频标题、视频号的内容，去除口语化表达,
+                                    遇到不通顺的地方考虑使用同音词语推断正确的意思，内容如下：""" + document)
+                print(f"精简后的文档为:{document}")
+                print("---------------------------------")
+                await DocumentLoader.get_instance().create_graph_store(document)
         
         return state
 
