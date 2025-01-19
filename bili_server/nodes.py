@@ -109,15 +109,20 @@ class GraphNodes:
 
         from get_bilibili_data import get_data
         documents:List[str] = get_data.get(missing_keywords,page_num=1)
-        # try: 
-        #     print(f"检索到的文档为[前200字符]: {documents[:100]}")
-        # except:
-        #     print()
+        
         for document in documents:
+            # 内容多与100才被收录
+            if "内容" in document:
+                content_start = document.find("内容") + len("内容")
+                content = document[content_start:].strip()
+                if len(content) < 100:
+                    continue
+
             print(f"检索到的文档为:{document}")
-            document = chat_with_ai(f"""你需要将一份可能存在记录错误的文档精简成精炼准确的形式,
-                                    精简后必须仍然包含视频标题、视频号的内容，去除口语化表达,
-                                  遇到不通顺的地方考虑使用同音词语推断正确的意思，文档如下：""" + document)
+            document = chat_with_ai(f"""你需要总结一份可能存在记录错误的内容,
+                                    要求如下：\n1.简洁，用陈列方式输出\n2.字数在300字内。
+                                    总结后必须仍然包含视频标题、视频号的内容，去除口语化表达,
+                                  遇到不通顺的地方考虑使用同音词语推断正确的意思，内容如下：""" + document)
             print(f"精简后的文档为:{document}")
             print("---------------------------------")
             await DocumentLoader.get_instance().create_graph_store(document)
