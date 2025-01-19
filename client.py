@@ -215,5 +215,3 @@ if search_button:
 
         except Exception as e:
             st.error(f"处理时出现错误: {str(e)}")
-            print(last_response["generation"])
-            st.markdown(last_response["generation"])
