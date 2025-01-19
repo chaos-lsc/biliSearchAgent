@@ -157,7 +157,7 @@ def show_kg_stats():
 # 使用 Markdown 和样式增强标题，包括图标和渐变色
 st.markdown("""
 <h1 style='text-align: center; color: blue; background: linear-gradient(to right, red, purple); -webkit-background-clip: text; -webkit-text-fill-color: transparent;'>
-      📊 BiliBili 实时数据分析
+      📊 BiliBili Search 检索增强助手
 </h1>
 """, unsafe_allow_html=True)
 
@@ -189,21 +189,32 @@ with st.container():
         st.markdown('<div class="search-container">', unsafe_allow_html=True)
         
         col_input, col_search, col_clear = st.columns([4, 0.5, 0.5])  # 分配比例给各列
-
         with col_input:
-            input_text = st.text_input("", placeholder="请输入问题:", key="input")
-
+            # 使用 st.empty() 创建一个可替换的容器
+            input_text_container = st.empty()
+            # # 在容器中添加文本输入框
+            # input_text = input_text_container.text_input("", placeholder="请输入问题:", key="input")
         with col_search:
             st.markdown('<div class="buttons-column">', unsafe_allow_html=True)
             search_button = st.button("搜索", key="search")
             st.markdown('</div>', unsafe_allow_html=True)  # 关闭按钮容器
-
         with col_clear:
             st.markdown('<div class="buttons-column">', unsafe_allow_html=True)
             clear_button = st.button("清空", key="clear")
             st.markdown('</div>', unsafe_allow_html=True)  # 关闭按钮容器
         
         st.markdown('</div>', unsafe_allow_html=True)  # 关闭搜索框容器
+
+# 如果点击了清空按钮，则清空输入框中的文本
+if clear_button:
+    # 使用 st.empty() 重新创建一个空的容器，替换原来的文本输入框
+    input_text_container.empty()
+    # 在新的容器中添加一个新的文本输入框
+    input_text = st.text_input("", placeholder="请输入问题:", key="input")
+    # 清空输入框中的文本，但保留输入框
+    st.session_state.input_text = ""
+    # 手动更新 input_text 变量的值
+    input_text = ""
 
     # # 显示知识图谱按钮和 expander
     # show_knowledge_graph = st.button('显示知识图谱')
@@ -248,11 +259,14 @@ if search_button:
             if responses:
                 st.subheader('分析结果')
                 last_response = responses[-1]
-                st.markdown(last_response["generate"]["generation"])
-
+                print(last_response)
+                print("--------------")
+                if last_response is not None and "generation" in last_response:
+                    print(last_response["generation"])
+                    st.markdown(last_response["generation"])
+                else:
+                    st.markdown("No generation data available.")
         except Exception as e:
             st.error(f"处理时出现错误: {str(e)}")
-
-# 如果点击了清空按钮，则清空输入框中的文本
-if clear_button:
-    st.session_state.input = ""  # 清除文本输入框的内容
+            print(last_response["generation"])
+            st.markdown(last_response["generation"])
